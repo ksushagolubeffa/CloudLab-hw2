@@ -36,7 +36,10 @@ resource "yandex_function" "bot" {
     FACES_MOUNT_POINT  = yandex_storage_bucket.faces_bucket.bucket
     API_GATEWAY_URL    = "https://${yandex_api_gateway.api_gw.domain}"
   }
-  
+  #zip архив
+  content {
+    zip_filename = data.archive_file.bot_source.output_path
+  }
   mounts {
     name = yandex_storage_bucket.photos_bucket.bucket
     mode = "ro"
@@ -89,7 +92,12 @@ paths:
         service_account_id: ${yandex_iam_service_account.sa_bot.id}
 EOT
 }
-
+#zip архив
+data "archive_file" "bot_source" {
+  type        = "zip"
+  source_dir  = "../src/telegram-bot"
+  output_path = "../All_Archives/telegram-bot.zip"
+}
 
 resource "yandex_iam_service_account" "sa_bot" {
   name = var.sa_bot
@@ -117,7 +125,10 @@ resource "yandex_function" "cropper" {
     ACCESS_KEY_ID      = yandex_iam_service_account_static_access_key.sa_cropper_static_key.access_key
     SECRET_ACCESS_KEY  = yandex_iam_service_account_static_access_key.sa_cropper_static_key.secret_key
   }
- 
+  #zip архив
+  content {
+    zip_filename = data.archive_file.cropper_source.output_path
+  }
   mounts {
     name = yandex_storage_bucket.photos_bucket.bucket
     mode = "ro"
@@ -147,7 +158,12 @@ resource "yandex_function_trigger" "crop_tasks_queue_trigger" {
     service_account_id = yandex_iam_service_account.sa_cropper.id
   }
 }
-
+#zip архив
+data "archive_file" "cropper_source" {
+  type        = "zip"
+  source_dir  = "../src/face-cut"
+  output_path = "../All_Archives/face-cut.zip"
+}
 
 resource "yandex_iam_service_account" "sa_cropper" {
   name = var.sa_face_cut
@@ -191,7 +207,10 @@ resource "yandex_function" "recognizer" {
     ACCESS_KEY_ID     = yandex_iam_service_account_static_access_key.sa_recognizer_static_key.access_key
     SECRET_ACCESS_KEY = yandex_iam_service_account_static_access_key.sa_recognizer_static_key.secret_key
   }
-  
+  #zip архив
+  content {
+    zip_filename = data.archive_file.recognizer_source.output_path
+  }
   mounts {
     name = yandex_storage_bucket.photos_bucket.bucket
     mode = "ro"
@@ -221,6 +240,12 @@ resource "yandex_message_queue" "crop_tasks_queue" {
   secret_key = yandex_iam_service_account_static_access_key.sa_recognizer_static_key.secret_key
 }
 
+#zip архив
+data "archive_file" "recognizer_source" {
+  type        = "zip"
+  source_dir  = "../src/face-detection"
+  output_path = "../All_Archives/face-detection.zip"
+}
 resource "yandex_iam_service_account" "sa_recognizer" {
   name = var.sa_face_detection
 }
